@@ -295,24 +295,18 @@ Pitfalls that produce wrong answers:
 - Save the event's `hangoutLink` (fallback `conferenceData.entryPoints[type=video].uri`) when the ask is
   "join the meeting that is running now" — use `scripts/meet_now.py` to get it, then follow
   `references/meet-join-from-calendar.md`.
-- "Schedule a meeting and send me the link" (LOCAL PATCH, 2026-11-24): create the event on the bot's
-  own calendar with Riz as guest, a Meet link and an emailed invitation:
-  `google_api.py calendar create --summary "<title>" --start <ISO> --end <ISO> --attendees <Riz's personal Gmail> --meet --notify`.
-  Since the third 2026-11-24 patch, a default `calendar create` (no `--calendar`) puts the event on
-  Riz's own calendar, so Riz is the organizer, and adds the bot (`HERMES_BOT_EMAIL`) as a guest.
-  Riz shared his calendar with the bot with write access for this. If that insert is refused, it
-  falls back to the bot's calendar with Riz as guest. Earlier note, still true for the fallback:
-  `calendar create` always adds `HERMES_OWNER_EMAIL` (Riz) as a
-  guest and always sends the invite, even without `--attendees`/`--notify`. Still pass other
-  guests (for example a colleague) with `--attendees`.
-  Post the printed `meetLink` in the chat. The event then shows on Riz's calendar, so the Meet
-  watcher joins it automatically. The bot is the organizer, so it joins without the lobby.
-  The `--attendees … --notify` part is not optional: `<bot Gmail, HERMES_BOT_EMAIL>` has only **read** access
-  to Riz's calendar (`<owner Gmail, HERMES_OWNER_EMAIL>`), so a plain `events.insert` on the bot's `primary`
-  never reaches Riz — he says "this did not show on my calendar". Do not invent a workaround when the
-  invite path fails; give him a
+- "Schedule a meeting and send me the link" (LOCAL PATCH, 2026-11-24):
+  `google_api.py calendar create --summary "<title>" --start <ISO> --end <ISO> --meet --notify`.
+  A default `calendar create` (no `--calendar`) puts the event on Riz's own calendar, so Riz is the
+  organizer, and adds the bot (`HERMES_BOT_EMAIL`) as a guest. Riz gave the bot "Make changes to
+  events" on his calendar for this. If that insert is refused (403/404), it falls back to the bot's
+  calendar with Riz (`HERMES_OWNER_EMAIL`) as guest. Riz is always invited and the invite is always
+  sent, so do not pass his address. Pass other guests with `--attendees`.
+  Post the printed `meetLink` in the chat first. The event is on Riz's calendar, so the Meet watcher
+  joins it, records it, and sends the Whisper recap after the call. Do not join it by hand as well.
+  If both inserts fail, do not invent a workaround: give Riz a
   `https://calendar.google.com/calendar/render?action=TEMPLATE&text=…&dates=…Z/…Z&details=…&location=…`
-  link (one tap, then Save) or ask him to re-share the calendar with the bot as "Make changes to events".
+  link (one tap, then Save).
 
 ### Drive
 
